@@ -1,15 +1,22 @@
 package com.example.guessthephrase
 
+import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
     private lateinit var guesstext: EditText
@@ -17,16 +24,37 @@ class MainActivity : AppCompatActivity() {
     private lateinit var messages: ArrayList<String>
     private lateinit var tvPhrase: TextView
     private lateinit var tvLetters: TextView
-    private val phrase = "Hello There"
+    private lateinit var myHighScore: TextView
+    private var phrase = ""
     private var guessChar = ""
     private var count = 0
     private var guessPhrase = true
     private val phraseChar = mutableMapOf<Int, Char>()
     private var youranswer = ""
+    private var score = 0
+    private var highScore = 0
+    lateinit var dbHlpr:DBHlpr
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        dbHlpr=DBHlpr(applicationContext)
+        val phras=dbHlpr.getPha()
+
+        if (phras.isNotEmpty()) {
+            var randomIndex= Random.nextInt(phras.size)
+            phrase = phras[randomIndex]
+
+
+
+        sharedPreferences = this.getSharedPreferences(
+            getString(R.string.preference_file_key), Context.MODE_PRIVATE)
+        highScore = sharedPreferences.getInt("HighScore", 0)
+
+        myHighScore = findViewById(R.id.tvHS)
+        myHighScore.text = "High Score: $highScore"
+
 
         for (ch in phrase.indices) {
             if (phrase[ch] == ' ') {
@@ -76,7 +104,6 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-
         tvPhrase = findViewById(R.id.tvPrompt)
         tvLetters = findViewById(R.id.tvLetters)
 
@@ -88,7 +115,31 @@ class MainActivity : AppCompatActivity() {
             guesstext.hint = "Guess a letter"
         }
     }
+        else
+        {
+            Toast.makeText(applicationContext, "Add new phrase from menu", Toast.LENGTH_SHORT).show()
+        }
+    }
 
+    override fun onRestart() {
+        super.onRestart()
+        this.recreate()
+
+    }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.addNew->{
+                startActivity(Intent(applicationContext,MainActivity2::class.java))
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     private fun disableEntry() {
         guessBtn.isEnabled = false
@@ -133,6 +184,7 @@ class MainActivity : AppCompatActivity() {
         for(i in phraseChar){youranswer += phraseChar[i.key]}
         if(youranswer==phrase){
             disableEntry()
+            updateScore()
             showAlert("You win Do you want to play again:")
         }
         if(guessChar.isEmpty()){guessChar+=guessedLetter}else{guessChar+=", "+guessedLetter}
@@ -153,4 +205,16 @@ class MainActivity : AppCompatActivity() {
         }
         rvMsgs.scrollToPosition(messages.size - 1)
     }
+    private fun updateScore(){
+        score = 10 - count
+        if(score >= highScore){
+            highScore = score
+            with(sharedPreferences.edit()) {
+                putInt("HighScore", highScore)
+                apply()
+            }
+            Snackbar.make(clRoot, "NEW HIGH SCORE!", Snackbar.LENGTH_LONG).show()
+        }
+    }
+
 }
