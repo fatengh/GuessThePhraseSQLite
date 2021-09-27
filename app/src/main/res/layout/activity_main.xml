@@ -8,11 +8,24 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/tvHS"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:letterSpacing=".1"
+        android:text="High Score: "
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:background="@color/black"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
         android:id="@+id/tvPrompt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Guess a number between 0 and 10"
         android:textColor="@color/white"
         android:background="@color/black"
         android:textAlignment="center"

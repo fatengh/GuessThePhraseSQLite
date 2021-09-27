@@ -1,6 +1,8 @@
 package com.example.guessthephrase
 
+import android.content.Context
 import android.content.DialogInterface
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -17,16 +19,28 @@ class MainActivity : AppCompatActivity() {
     private lateinit var messages: ArrayList<String>
     private lateinit var tvPhrase: TextView
     private lateinit var tvLetters: TextView
+    private lateinit var myHighScore: TextView
     private val phrase = "Hello There"
     private var guessChar = ""
     private var count = 0
     private var guessPhrase = true
     private val phraseChar = mutableMapOf<Int, Char>()
     private var youranswer = ""
+    private var score = 0
+    private var highScore = 0
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        sharedPreferences = this.getSharedPreferences(
+            getString(R.string.preference_file_key), Context.MODE_PRIVATE)
+        highScore = sharedPreferences.getInt("HighScore", 0)
+
+        myHighScore = findViewById(R.id.tvHS)
+        myHighScore.text = "High Score: $highScore"
+
 
         for (ch in phrase.indices) {
             if (phrase[ch] == ' ') {
@@ -76,7 +90,6 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-
         tvPhrase = findViewById(R.id.tvPrompt)
         tvLetters = findViewById(R.id.tvLetters)
 
@@ -133,6 +146,7 @@ class MainActivity : AppCompatActivity() {
         for(i in phraseChar){youranswer += phraseChar[i.key]}
         if(youranswer==phrase){
             disableEntry()
+            updateScore()
             showAlert("You win Do you want to play again:")
         }
         if(guessChar.isEmpty()){guessChar+=guessedLetter}else{guessChar+=", "+guessedLetter}
@@ -153,4 +167,16 @@ class MainActivity : AppCompatActivity() {
         }
         rvMsgs.scrollToPosition(messages.size - 1)
     }
+    private fun updateScore(){
+        score = 10 - count
+        if(score >= highScore){
+            highScore = score
+            with(sharedPreferences.edit()) {
+                putInt("HighScore", highScore)
+                apply()
+            }
+            Snackbar.make(clRoot, "NEW HIGH SCORE!", Snackbar.LENGTH_LONG).show()
+        }
+    }
+
 }
